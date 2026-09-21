@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAUGE — Maintenance Control</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%231B2430%22/><circle cx=%2250%22 cy=%2250%22 r=%2222%22 fill=%22none%22 stroke=%22%23E8A33D%22 stroke-width=%228%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="3.2"/>
+        <circle cx="20" cy="20" r="6.2" fill="currentColor"/>
+        <line x1="20" y1="1.5" x2="20" y2="8" stroke="currentColor" stroke-width="3.2"/>
+        <line x1="20" y1="32" x2="20" y2="38.5" stroke="currentColor" stroke-width="3.2"/>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-name">GAUGE</span>
+        <span class="brand-sub">Maintenance Control</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-link is-active" data-view="dashboard">Dashboard</button>
+      <button class="nav-link" data-view="machines">Machines</button>
+      <button class="nav-link" data-view="reports">Reports log</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="btn btn-primary btn-block" id="btn-new-report-global">+ New report</button>
+      <div class="tech-field">
+        <label for="active-tech">Signed in as</label>
+        <input id="active-tech" type="text" placeholder="Your name" autocomplete="off">
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- ---------- DASHBOARD VIEW ---------- -->
+    <section class="view" id="view-dashboard">
+      <header class="view-head">
+        <div>
+          <h1>Plant overview</h1>
+          <p class="view-sub">Status across all 500 registered units.</p>
+        </div>
+      </header>
+
+      <div class="stat-row" id="stat-row"></div>
+
+      <div class="dash-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Attention needed</h2>
+            <span class="panel-note">Faulty or mid-maintenance units</span>
+          </div>
+          <div class="attention-list" id="attention-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Latest reports</h2>
+            <span class="panel-note">Most recent activity across the floor</span>
+          </div>
+          <div class="recent-list" id="recent-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- MACHINES VIEW ---------- -->
+    <section class="view" id="view-machines" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Machines</h1>
+          <p class="view-sub">Units #1–500. Select one to open its file.</p>
+        </div>
+        <div class="head-controls">
+          <input type="search" id="machine-search" placeholder="Jump to unit number…" inputmode="numeric">
+          <div class="seg" id="status-filter">
+            <button class="seg-btn is-active" data-status="all">All</button>
+            <button class="seg-btn" data-status="Operational">Operational</button>
+            <button class="seg-btn" data-status="Under maintenance">In maintenance</button>
+            <button class="seg-btn" data-status="Faulty">Faulty</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="machine-grid" id="machine-grid" aria-label="Machine list"></div>
+    </section>
+
+    <!-- ---------- MACHINE DETAIL VIEW ---------- -->
+    <section class="view" id="view-detail" hidden>
+      <button class="back-link" id="btn-back-machines">← All machines</button>
+
+      <header class="detail-head">
+        <div class="detail-id-block">
+          <span class="detail-eyebrow">Unit</span>
+          <h1 id="detail-id">#000</h1>
+        </div>
+        <div class="detail-meta">
+          <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="status-pill" id="detail-status">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Zone</span>
+            <span id="detail-zone">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Category</span>
+            <span id="detail-category">—</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Last service</span>
+            <span id="detail-last">—</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-new-report-detail">+ Report for this unit</button>
+      </header>
+
+      <div class="detail-body">
+        <h2 class="detail-section-title">Service history</h2>
+        <p class="detail-section-sub">Every logged repair, replacement and inspection for this unit, most recent first.</p>
+        <div class="history-timeline" id="history-timeline"></div>
+      </div>
+    </section>
+
+    <!-- ---------- REPORTS LOG VIEW ---------- -->
+    <section class="view" id="view-reports" hidden>
+      <header class="view-head">
+        <div>
+          <h1>Reports log</h1>
+          <p class="view-sub">Every maintenance report filed, across every unit.</p>
+        </div>
+        <div class="head-controls">
+          <input type="search" id="reports-search" placeholder="Search unit, technician, part…">
+          <select id="reports-type-filter">
+            <option value="all">All work types</option>
+            <option value="Part replacement">Part replacement</option>
+            <option value="Oil renewal">Oil renewal</option>
+            <option value="Electrical work">Electrical work</option>
+            <option value="Inspection">Inspection</option>
+            <option value="Repair">Repair</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </header>
+
+      <div class="reports-table-wrap">
+        <table class="reports-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Unit</th>
+              <th>Type</th>
+              <th>Technician</th>
+              <th>Description</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody id="reports-tbody"></tbody>
+        </table>
+        <p class="empty-note" id="reports-empty" hidden>No reports match that search.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ NEW REPORT MODAL ============ -->
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h2 id="modal-title">New maintenance report</h2>
+      <button class="modal-close" id="modal-close" aria-label="Close">×</button>
+    </div>
+
+    <form id="report-form" class="modal-form">
+      <div class="form-row">
+        <label for="f-machine">Unit number</label>
+        <input type="number" id="f-machine" min="1" max="500" required placeholder="e.g. 142">
+      </div>
+
+      <div class="form-row-split">
+        <div class="form-row">
+          <label for="f-type">Work type</label>
+          <select id="f-type" required>
+            <option value="">Select…</option>
+            <option>Part replacement</option>
+            <option>Oil renewal</option>
+            <option>Electrical work</option>
+            <option>Inspection</option>
+            <option>Repair</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="f-date">Date</label>
+          <input type="date" id="f-date" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-tech">Technician</label>
+        <input type="text" id="f-tech" required placeholder="Full name">
+      </div>
+
+      <div class="form-row">
+        <label for="f-desc">What was done</label>
+        <textarea id="f-desc" rows="3" required placeholder="e.g. Replaced worn drive belt and realigned tensioner."></textarea>
+      </div>
+
+      <div class="form-row-split">
+        <div class="form-row">
+          <label for="f-parts">Parts / materials used <span class="opt">(optional)</span></label>
+          <input type="text" id="f-parts" placeholder="e.g. Belt B-42, 2L gear oil">
+        </div>
+        <div class="form-row">
+          <label for="f-downtime">Downtime, hours <span class="opt">(optional)</span></label>
+          <input type="number" id="f-downtime" min="0" step="0.5" placeholder="0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="f-status">Unit status after this report</label>
+        <select id="f-status" required>
+          <option value="Operational">Operational — back in service</option>
+          <option value="Under maintenance">Under maintenance — work continuing</option>
+          <option value="Faulty">Faulty — still down</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="btn-cancel-report">Cancel</button>
+        <button type="submit" class="btn btn-primary">File report</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
